@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { createChatCompletion } from './ai-provider';
 
 export interface CandidateProfile {
   name?: string;
@@ -10,21 +10,10 @@ export interface CandidateProfile {
   suggestions: string[];
 }
 
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is required');
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
-
 export async function buildCandidateProfile(text: string): Promise<CandidateProfile> {
   try {
-    const openai = getOpenAIClient();
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
+    const result = await createChatCompletion(
+      [
         {
           role: 'system',
           content: `Extract candidate profile information from the provided text (resume or portfolio). Return a JSON object with the following structure:
@@ -45,14 +34,13 @@ export async function buildCandidateProfile(text: string): Promise<CandidateProf
           content: text
         }
       ],
-      response_format: { type: 'json_object' },
-      temperature: 0.3,
-    });
+      {
+        responseFormat: { type: 'json_object' },
+        temperature: 0.3,
+      }
+    );
 
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('No response from OpenAI');
-    }
+    const content = result.content;
 
     const profile = JSON.parse(content) as CandidateProfile;
     
@@ -68,6 +56,8 @@ export async function buildCandidateProfile(text: string): Promise<CandidateProf
     };
   } catch (error) {
     console.error('Error building candidate profile:', error);
-    throw new Error('Failed to analyze candidate profile');
+    throw new Error(
+      `Failed to analyze candidate profile: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 } 

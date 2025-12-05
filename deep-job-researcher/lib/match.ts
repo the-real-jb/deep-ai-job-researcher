@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { createChatCompletion } from './ai-provider';
 import { CandidateProfile } from './candidate';
 import { JobListing } from './jobs';
 
@@ -14,15 +14,6 @@ export interface JobMatch {
   source: string;
 }
 
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is required');
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
-
 export async function llmMatch(
   candidate: CandidateProfile,
   jobs: JobListing[],
@@ -31,10 +22,8 @@ export async function llmMatch(
   try {
     onProgress?.('[LLM] Starting job matching analysis...');
 
-    const openai = getOpenAIClient();
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
+    const result = await createChatCompletion(
+      [
         {
           role: 'system',
           content: `You are a professional recruiter analyzing job matches for a candidate. Given a candidate profile and a list of job opportunities, provide a detailed analysis of how well each job matches the candidate.
@@ -85,14 +74,13 @@ export async function llmMatch(
           `).join('\n')}`
         }
       ],
-      response_format: { type: 'json_object' },
-      temperature: 0.3,
-    });
+      {
+        responseFormat: { type: 'json_object' },
+        temperature: 0.3,
+      }
+    );
 
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('No response from OpenAI');
-    }
+    const content = result.content;
 
     onProgress?.('[LLM] Processing match results...');
 
@@ -127,7 +115,9 @@ export async function llmMatch(
   } catch (error) {
     console.error('Error in LLM matching:', error);
     onProgress?.('[ERROR] Failed to analyze job matches');
-    throw new Error('Failed to analyze job matches');
+    throw new Error(
+      `Failed to analyze job matches: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
