@@ -21,12 +21,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+echo -e "${GREEN}Step 1: Verifying user permissions...${NC}"
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
    echo -e "${RED}This script should NOT be run as root${NC}"
    echo "Run as your regular user with sudo access"
    exit 1
 fi
+echo -e "${GREEN}✓ Running as non-root user with sudo access${NC}"
 
 echo -e "${GREEN}Step 2: Installing PM2 globally...${NC}"
 sudo npm install -g pm2
@@ -67,16 +69,7 @@ if [ ! -f .env.local ]; then
 fi
 
 echo -e "${GREEN}Step 9: Configuring nginx...${NC}"
-
-# Check if certificates exist to decide which config to use
-if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
-    echo -e "${YELLOW}Certificates not found. Using bootstrap configuration...${NC}"
-    sudo cp deployment/nginx/resume-hunter.jbresearch-llc.com.conf.bootstrap $NGINX_CONFIG
-else
-    echo "Certificates found. Using full configuration."
-    sudo cp deployment/nginx/resume-hunter.jbresearch-llc.com.conf $NGINX_CONFIG
-fi
-
+sudo cp deployment/nginx/resume-hunter.jbresearch-llc.com.conf $NGINX_CONFIG
 sudo ln -sf $NGINX_CONFIG /etc/nginx/sites-enabled/
 
 echo -e "${GREEN}Step 10: Testing nginx configuration...${NC}"
@@ -86,31 +79,16 @@ echo -e "${GREEN}Step 11: Restarting nginx...${NC}"
 sudo systemctl restart nginx
 
 echo -e "${GREEN}Step 12: Obtaining SSL certificate with Let's Encrypt...${NC}"
-if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
-    echo "Obtaining certificates..."
-    sudo certbot certonly --webroot -w /var/www/certbot -d $DOMAIN --non-interactive --agree-tos --email admin@jbresearch-llc.com
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Certificates obtained successfully! Switching to full Nginx configuration...${NC}"
-        sudo cp deployment/nginx/resume-hunter.jbresearch-llc.com.conf $NGINX_CONFIG
-        sudo nginx -t
-        sudo systemctl restart nginx
-    else
-        echo -e "${RED}Failed to obtain certificates. Please check logs.${NC}"
-        exit 1
-    fi
-else
-    echo "Certificates already exist. Ensuring full config is active..."
-    sudo cp deployment/nginx/resume-hunter.jbresearch-llc.com.conf $NGINX_CONFIG
-    sudo nginx -t
-    sudo systemctl reload nginx
-fi
+sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@jbresearch-llc.com || {
+    echo -e "${YELLOW}SSL certificate setup failed. You can run it manually later:${NC}"
+    echo "  sudo certbot --nginx -d $DOMAIN"
+}
 
 echo -e "${GREEN}Step 13: Starting application with PM2...${NC}"
-# Update the ecosystem config with actual path
-sed -i "s|/path/to/ai-assited-job-researcher|$APP_DIR|g" deployment/ecosystem.config.js
+# Create local PM2 config from template (this file is git-ignored)
+sed "s|__APP_DIR__|$APP_DIR|g" deployment/ecosystem.config.js > ecosystem.config.local.js
 
-pm2 start deployment/ecosystem.config.js
+pm2 start ecosystem.config.local.js
 pm2 save
 pm2 startup
 

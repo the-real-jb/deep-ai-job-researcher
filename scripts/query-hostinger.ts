@@ -39,7 +39,12 @@ async function queryHostinger() {
     if (error.response) {
       console.error('Response data:', error.response.data);
     }
+    process.exit(1);
   }
 }
 
-queryHostinger();
+// Execute the async function and handle any unhandled errors
+queryHostinger().catch((error) => {
+  console.error('Unhandled error:', error);
+  process.exit(1);
+});
