@@ -11,6 +11,7 @@ Next.js app that matches your resume or portfolio with live job postings using A
 - **Live Console**: Real-time progress tracking during crawling and analysis
 - **Export Options**: Download results as JSON or CSV
 - **Dark Theme**: Professional black and green interface
+- **Comprehensive Testing**: Unit and E2E tests with Vitest and Playwright
 
 ## Setup
 
@@ -163,6 +164,48 @@ Next.js app that matches your resume or portfolio with live job postings using A
 3. Watch the live console as the app crawls job boards
 4. Review AI-matched job opportunities with scores and tailored pitches
 5. Export results or copy outreach emails
+
+## Testing
+
+The application includes comprehensive test coverage with both unit and E2E tests.
+
+### Run Tests
+
+```bash
+# Unit tests (fast, no API keys needed)
+npm test              # Watch mode
+npm run test:unit     # Run once
+npm run test:coverage # With coverage report
+
+# E2E tests (require dev server)
+npm run test:e2e      # Run all E2E tests
+npm run test:e2e:ui   # Interactive UI mode
+npm run test:e2e:debug # Debug mode
+
+# Run all tests
+npm run test:all      # Unit + E2E
+```
+
+### Test Coverage
+
+- ✅ **AI Provider Detection** - Tests provider priority and configuration
+- ✅ **Job Crawling** - Tests Hyperbrowser integration with mocked responses
+- ✅ **Matching Logic** - Tests job scoring, export formatting, and email generation
+- 📝 **E2E Flows** - Browser tests for resume upload and portfolio analysis
+
+**Current Status:** 21 unit tests passing
+
+### Documentation
+
+- Full testing guide: [`tests/README.md`](tests/README.md)
+- Testing summary: [`TESTING_SUMMARY.md`](TESTING_SUMMARY.md)
+- Test fixtures and mocks: `tests/fixtures/`
+
+### Testing Stack
+
+- **Vitest** - Fast unit testing with TypeScript support
+- **Playwright** - Reliable E2E browser automation
+- **React Testing Library** - Component testing utilities
 
 ## Growth Use Case
 
