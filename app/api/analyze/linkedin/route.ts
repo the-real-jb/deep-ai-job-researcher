@@ -76,6 +76,14 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Scrape LinkedIn profile
     const linkedInData = await scrapeLinkedInProfile(linkedInUrl);
+
+    if (linkedInData.error) {
+      return NextResponse.json(
+        { error: `LinkedIn scraping failed: ${linkedInData.error}` },
+        { status: 400 }
+      );
+    }
+
     const linkedInText = convertLinkedInDataToText(linkedInData);
 
     if (!linkedInText || linkedInText.length < 50) {

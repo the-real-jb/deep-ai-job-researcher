@@ -18,6 +18,7 @@ export interface LinkedInProfileData {
   }>;
   connections?: number;
   recommendations?: number;
+  error?: string;
 }
 
 export async function scrapeLinkedInProfile(
@@ -47,11 +48,10 @@ export async function scrapeLinkedInProfile(
     console.error('Error scraping LinkedIn profile:', error);
     onProgress?.(`[ERROR] Failed to scrape LinkedIn profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
 
-    // Return minimal data on error
+    // Return error information
     return {
-      name: undefined,
-      headline: undefined,
       skills: [],
+      error: error instanceof Error ? error.message : 'Unknown scraping error',
     };
   }
 }
