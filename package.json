@@ -21,6 +21,7 @@
     "@google/generative-ai": "^0.24.1",
     "@hyperbrowser/sdk": "^0.55.0",
     "framer-motion": "^11.3.8",
+    "hostinger-api-sdk": "^0.0.17",
     "lucide-react": "^0.417.0",
     "next": "15.4.8",
     "openai": "^4.62.1",

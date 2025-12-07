@@ -1,0 +1,18 @@
+# Bootstrap Nginx configuration for resume-hunter.jbresearch-llc.com
+# Used for initial SSL certificate generation
+server {
+    listen 80;
+    listen [::]:80;
+    server_name resume-hunter.jbresearch-llc.com;
+
+    # Certbot ACME challenge location for Let's Encrypt
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Redirect all other HTTP traffic to HTTPS (will fail until certs are installed, which is fine)
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+}
+

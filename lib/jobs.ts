@@ -23,42 +23,197 @@ const JOB_SOURCES: JobSource[] = [
     url: 'https://www.workatastartup.com/jobs',
     depth: 2,
   },
+  {
+    name: 'LinkedIn Jobs',
+    url: 'https://www.linkedin.com/jobs/search/?keywords=software%20engineer&location=United%20States&f_TPR=r86400',
+    depth: 1,
+  },
 ];
 
 export async function crawlJobSources(
-  onProgress?: (message: string) => void
+  onProgress?: (message: string) => void,
+  options?: {
+    includeSources?: string[]; // Filter to specific sources
+    keywords?: string[]; // Keywords for targeted search
+  }
 ): Promise<JobListing[]> {
   const allJobs: JobListing[] = [];
 
-  for (const source of JOB_SOURCES) {
+  // Filter sources if specified
+  let sourcesToCrawl = JOB_SOURCES;
+  if (options?.includeSources) {
+    sourcesToCrawl = JOB_SOURCES.filter(s =>
+      options.includeSources!.some(inc => s.name.toLowerCase().includes(inc.toLowerCase()))
+    );
+  }
+
+  for (const source of sourcesToCrawl) {
     try {
       onProgress?.(`[CRAWL] Starting ${source.name}...`);
-      
+
       const jobs = await withClient(async (client) => {
+        // Build search URL with keywords for LinkedIn
+        let searchUrl = source.url;
+        if (source.name === 'LinkedIn Jobs' && options?.keywords && options.keywords.length > 0) {
+          const keywordString = options.keywords.slice(0, 3).join('%20'); // Top 3 keywords
+          searchUrl = `https://www.linkedin.com/jobs/search/?keywords=${keywordString}&location=United%20States&f_TPR=r86400`;
+        }
+
         const result = await client.crawl.startAndWait({
-          url: source.url,
-          maxPages: 10,
+          url: searchUrl,
+          maxPages: source.name === 'LinkedIn Jobs' ? 5 : 10, // Limit LinkedIn crawling
           scrapeOptions: {
             formats: ['markdown', 'html'],
           },
         });
 
         onProgress?.(`[CRAWL] ${source.name} - ${result.status || 'completed'} - ${result.data?.length || 0} pages`);
-        
+
         return parseJobsFromCrawlResult(result, source);
       });
 
       allJobs.push(...jobs);
       onProgress?.(`[PARSE] Extracted ${jobs.length} jobs from ${source.name}`);
-      
+
     } catch (error) {
       console.error(`Error crawling ${source.name}:`, error);
       onProgress?.(`[ERROR] Failed to crawl ${source.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  onProgress?.(`[COMPLETE] Total jobs found: ${allJobs.length}`);
-  return allJobs;
+  // Deduplicate jobs based on URL and title similarity
+  const uniqueJobs = deduplicateJobs(allJobs);
+  onProgress?.(`[COMPLETE] Total unique jobs found: ${uniqueJobs.length} (from ${allJobs.length} raw)`);
+
+  return uniqueJobs;
+}
+
+export async function crawlLinkedInJobs(
+  keywords: string[],
+  location?: string,
+  onProgress?: (message: string) => void
+): Promise<JobListing[]> {
+  try {
+    onProgress?.(`[LINKEDIN] Searching LinkedIn with keywords: ${keywords.slice(0, 3).join(', ')}`);
+
+    const keywordString = keywords.slice(0, 3).join('%20');
+    const locationString = location ? encodeURIComponent(location) : 'United%20States';
+    const searchUrl = `https://www.linkedin.com/jobs/search/?keywords=${keywordString}&location=${locationString}&f_TPR=r86400`;
+
+    const jobs = await withClient(async (client) => {
+      const result = await client.scrape.startAndWait({
+        url: searchUrl,
+        scrapeOptions: {
+          formats: ['markdown', 'html'],
+        },
+      });
+
+      onProgress?.(`[LINKEDIN] Scraped LinkedIn jobs page`);
+
+      return parseLinkedInJobs(result, searchUrl);
+    });
+
+    onProgress?.(`[LINKEDIN] Found ${jobs.length} LinkedIn jobs`);
+    return jobs;
+
+  } catch (error) {
+    console.error('Error crawling LinkedIn jobs:', error);
+    onProgress?.(`[ERROR] Failed to crawl LinkedIn: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return [];
+  }
+}
+
+function parseLinkedInJobs(scrapeResult: any, sourceUrl: string): JobListing[] {
+  const jobs: JobListing[] = [];
+
+  if (!scrapeResult.data) {
+    return jobs;
+  }
+
+  const content = scrapeResult.data.markdown || scrapeResult.data.html;
+  if (!content) return jobs;
+
+  // LinkedIn-specific parsing patterns
+  const lines = content.split('\n');
+  let currentJob: Partial<JobListing> = {};
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Look for job postings (LinkedIn uses specific patterns)
+    const linkMatch = line.match(/\[([^\]]+)\]\(([^)]+)\)/);
+
+    if (linkMatch && isJobTitle(linkMatch[1])) {
+      // Save previous job if complete
+      if (currentJob.title && currentJob.company) {
+        jobs.push({
+          title: currentJob.title,
+          company: currentJob.company,
+          url: currentJob.url || sourceUrl,
+          description: currentJob.description || 'No description available',
+          source: 'LinkedIn Jobs',
+          remote: currentJob.remote,
+          location: currentJob.location,
+        });
+      }
+
+      // Start new job
+      currentJob = {
+        title: linkMatch[1].trim(),
+        url: linkMatch[2].trim(),
+      };
+
+      // Look for company in next few lines
+      for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+        const nextLine = lines[j].trim();
+        if (nextLine && !nextLine.startsWith('#') && !nextLine.startsWith('[')) {
+          const company = nextLine.replace(/[\*_\[\]()]/g, '').trim();
+          if (company.length > 1 && company.length < 60 && !isJobTitle(company)) {
+            currentJob.company = company;
+            break;
+          }
+        }
+      }
+
+      // Extract location and remote status
+      const contextLines = lines.slice(i, Math.min(i + 10, lines.length)).join(' ');
+      currentJob.remote = /remote|anywhere|distributed|work from home/i.test(contextLines);
+      currentJob.location = extractLocationFromText(contextLines);
+      currentJob.description = contextLines.substring(0, 200);
+    }
+  }
+
+  // Don't forget last job
+  if (currentJob.title && currentJob.company) {
+    jobs.push({
+      title: currentJob.title,
+      company: currentJob.company,
+      url: currentJob.url || sourceUrl,
+      description: currentJob.description || 'No description available',
+      source: 'LinkedIn Jobs',
+      remote: currentJob.remote,
+      location: currentJob.location,
+    });
+  }
+
+  return jobs.slice(0, 30); // Limit LinkedIn results
+}
+
+function deduplicateJobs(jobs: JobListing[]): JobListing[] {
+  const seen = new Set<string>();
+  const unique: JobListing[] = [];
+
+  for (const job of jobs) {
+    // Create a normalized key for deduplication
+    const key = `${job.company.toLowerCase()}-${job.title.toLowerCase().replace(/\s+/g, '')}`;
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(job);
+    }
+  }
+
+  return unique;
 }
 
 function parseJobsFromCrawlResult(crawlResult: any, source: JobSource): JobListing[] {
