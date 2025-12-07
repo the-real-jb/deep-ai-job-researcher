@@ -32,6 +32,35 @@ npm run test:e2e:debug # Run E2E tests in debug mode
 npm run test:all      # Run all tests (unit + E2E)
 ```
 
+## Deployment Commands
+
+```bash
+# Deploy workflow (from local machine)
+git add .
+git commit -m "Your changes"
+git push origin master
+
+# Then on VPS:
+ssh user@45.90.109.196
+cd /var/www/resume-hunter
+./deployment/update-app.sh
+
+# Or manually:
+git pull origin master
+npm install
+npm run build
+pm2 restart resume-hunter
+```
+
+### Deployment Resources
+
+- **Git Workflow Guide**: [`deployment/GIT_WORKFLOW.md`](deployment/GIT_WORKFLOW.md) - Complete git deployment guide
+- **Quick Start**: [`deployment/QUICKSTART.md`](deployment/QUICKSTART.md) - 5-minute setup
+- **Full Guide**: [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md) - Complete deployment documentation
+- **Deployment Overview**: [`deployment/README.md`](deployment/README.md) - Overview of all deployment files
+- **Update Script**: [`deployment/update-app.sh`](deployment/update-app.sh) - Automated update from git
+- **Scripts Guide**: [`scripts/README.md`](scripts/README.md) - Hostinger API scripts documentation
+
 ## Environment Setup
 
 Copy `.env.example` to `.env.local` and configure:

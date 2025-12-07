@@ -21,12 +21,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+echo -e "${GREEN}Step 1: Verifying user permissions...${NC}"
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
    echo -e "${RED}This script should NOT be run as root${NC}"
    echo "Run as your regular user with sudo access"
    exit 1
 fi
+echo -e "${GREEN}✓ Running as non-root user with sudo access${NC}"
 
 echo -e "${GREEN}Step 2: Installing PM2 globally...${NC}"
 sudo npm install -g pm2
@@ -83,10 +85,10 @@ sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@jbre
 }
 
 echo -e "${GREEN}Step 13: Starting application with PM2...${NC}"
-# Update the ecosystem config with actual path
-sed -i "s|/path/to/ai-assited-job-researcher|$APP_DIR|g" deployment/ecosystem.config.js
+# Create local PM2 config from template (this file is git-ignored)
+sed "s|__APP_DIR__|$APP_DIR|g" deployment/ecosystem.config.js > ecosystem.config.local.js
 
-pm2 start deployment/ecosystem.config.js
+pm2 start ecosystem.config.local.js
 pm2 save
 pm2 startup
 

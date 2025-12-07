@@ -34,18 +34,33 @@ pm2 restart resume-hunter
 ## Deployment Files
 
 - `deployment/nginx/resume-hunter.jbresearch-llc.com.conf` - Nginx configuration
-- `deployment/ecosystem.config.js` - PM2 configuration
+- `deployment/ecosystem.config.js` - PM2 configuration template
 - `deployment/.env.production` - Environment template
 - `deployment/deploy.sh` - Automated deployment script
+- `deployment/update-app.sh` - Quick update script
 - `deployment/DEPLOYMENT.md` - Full deployment guide
+- `deployment/GIT_WORKFLOW.md` - Git deployment workflow
+- `deployment/README.md` - Deployment overview
+
+**Note:** The deployment generates `ecosystem.config.local.js` from the template (git-ignored).
 
 ## Essential Commands
 
 ```bash
+# Quick update (after pushing to GitHub)
+cd /var/www/resume-hunter
+./deployment/update-app.sh        # Updates from master branch
+./deployment/update-app.sh main   # Updates from main branch
+
 # Application
 pm2 status                  # Check status
 pm2 logs resume-hunter      # View logs
 pm2 restart resume-hunter   # Restart app
+
+# Git
+git pull origin master      # Pull latest changes
+git status                  # Check git status
+git log -5                  # View recent commits
 
 # Nginx
 sudo systemctl status nginx

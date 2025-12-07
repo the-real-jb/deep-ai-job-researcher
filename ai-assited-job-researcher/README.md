@@ -211,6 +211,46 @@ npm run test:all      # Unit + E2E
 
 Perfect for job seekers who want to automate the discovery and matching process with real-time job market data, demonstrating Hyperbrowser's ability to turn any website into structured data.
 
+## Deployment
+
+This app is deployed to `resume-hunter.jbresearch-llc.com` using a VPS with nginx, PM2, and Let's Encrypt SSL.
+
+### Quick Deployment Workflow
+
+```bash
+# 1. Commit and push changes locally
+git add .
+git commit -m "Your update message"
+git push origin master
+
+# 2. SSH to VPS and update
+ssh user@45.90.109.196
+cd /var/www/resume-hunter
+./deployment/update-app.sh
+```
+
+### Deployment Resources
+
+- **Quick Start Guide**: [`deployment/QUICKSTART.md`](deployment/QUICKSTART.md) - 5-minute deployment guide
+- **Full Deployment Guide**: [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md) - Complete setup instructions
+- **Git Workflow Guide**: [`deployment/GIT_WORKFLOW.md`](deployment/GIT_WORKFLOW.md) - Git-based deployment workflow
+- **Deployment Overview**: [`deployment/README.md`](deployment/README.md) - Overview of all deployment files
+- **Automated Deploy Script**: [`deployment/deploy.sh`](deployment/deploy.sh) - One-command initial deployment
+- **Update Script**: [`deployment/update-app.sh`](deployment/update-app.sh) - Quick update from git
+- **PM2 Config Template**: [`deployment/ecosystem.config.js`](deployment/ecosystem.config.js) - Process manager configuration template
+- **Nginx Config**: [`deployment/nginx/resume-hunter.jbresearch-llc.com.conf`](deployment/nginx/resume-hunter.jbresearch-llc.com.conf) - Reverse proxy setup
+- **Scripts Guide**: [`scripts/README.md`](scripts/README.md) - Hostinger API scripts documentation
+
+### Production Setup
+
+- **Repository**: https://github.com/gametimebrizzle/deep-ai-job-researcher.git
+- **Deployed URL**: https://resume-hunter.jbresearch-llc.com
+- **VPS**: 45.90.109.196 (Hostinger)
+- **App Port**: 3030
+- **Process Manager**: PM2
+- **Web Server**: Nginx (reverse proxy)
+- **SSL**: Let's Encrypt (auto-renewal)
+
 ## Future enhancements
 
 - Expand job board search and scraping using newer methods that allow for easier extraction of JavaScript heavy webpages.

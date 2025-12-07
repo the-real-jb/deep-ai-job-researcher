@@ -1,12 +1,15 @@
 // PM2 Ecosystem configuration for AI-Assisted Job Hunter
 // https://pm2.keymetrics.io/docs/usage/application-declaration/
+//
+// This is a TEMPLATE file. Do not modify directly on the server.
+// The deployment script will use this to generate ecosystem.config.local.js
 
 module.exports = {
   apps: [{
     name: 'resume-hunter',
     script: 'npm',
     args: 'start',
-    cwd: '/path/to/ai-assited-job-researcher', // UPDATE THIS PATH
+    cwd: '__APP_DIR__', // Will be replaced during deployment
     instances: 1,
     autorestart: true,
     watch: false,

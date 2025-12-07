@@ -126,16 +126,16 @@ sudo certbot --nginx -d resume-hunter.jbresearch-llc.com
 #### 6. Start Application with PM2
 
 ```bash
-# Update ecosystem config path
-sed -i "s|/path/to/ai-assited-job-researcher|/var/www/resume-hunter|g" \
-  deployment/ecosystem.config.js
-
 # Create log directory
 sudo mkdir -p /var/log/pm2
 sudo chown -R $USER:$USER /var/log/pm2
 
+# Generate local PM2 config from template (git-ignored)
+sed "s|__APP_DIR__|/var/www/resume-hunter|g" \
+  deployment/ecosystem.config.js > ecosystem.config.local.js
+
 # Start app
-pm2 start deployment/ecosystem.config.js
+pm2 start ecosystem.config.local.js
 
 # Save PM2 process list
 pm2 save
@@ -144,6 +144,8 @@ pm2 save
 pm2 startup
 # Copy and run the command it outputs
 ```
+
+**Note:** The `ecosystem.config.js` is a template file. The deployment creates `ecosystem.config.local.js` with the actual paths, which is git-ignored to keep deployments idempotent.
 
 ## Verification
 
@@ -171,24 +173,54 @@ pm2 startup
 
 ## Updating the Application
 
+### Using Git (Recommended)
+
+```bash
+# 1. On local machine: Commit and push changes
+git add .
+git commit -m "Your update message"
+git push origin master
+
+# 2. SSH to VPS
+ssh user@45.90.109.196
+
+# 3. Navigate to app directory
+cd /var/www/resume-hunter
+
+# 4. Pull latest code
+git pull origin master
+
+# 5. Install any new dependencies
+npm install
+
+# 6. Rebuild app
+npm run build
+
+# 7. Restart PM2
+pm2 restart resume-hunter
+```
+
+### Using Quick Update Script
+
 ```bash
 # SSH to VPS
 ssh user@45.90.109.196
-
-# Navigate to app directory
 cd /var/www/resume-hunter
+./deployment/update-app.sh
+```
 
-# Pull latest code (or upload with rsync)
-git pull  # if using git
-# OR from local: rsync -avz ./ user@45.90.109.196:/var/www/resume-hunter/
+### Using Rsync (Alternative)
 
-# Install any new dependencies
+```bash
+# From local machine
+rsync -avz --exclude 'node_modules' --exclude '.next' --exclude '.git' \
+  ./ user@45.90.109.196:/var/www/resume-hunter/
+
+# Then SSH and rebuild
+ssh user@45.90.109.196
+cd /var/www/resume-hunter
 npm install
-
-# Rebuild app
 npm run build
-
-# Restart PM2
 pm2 restart resume-hunter
 ```
 

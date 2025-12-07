@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 # local env files
 .env.local
+
+# deployment
+ecosystem.config.local.js
