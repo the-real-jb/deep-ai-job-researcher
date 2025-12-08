@@ -183,8 +183,9 @@ function preFilterJobs(candidate: CandidateProfile, jobs: JobListing[]): JobList
       jobText.includes(skill)
     ).length;
 
-    // Include if: has core skill match OR has 2+ skill matches
-    return coreSkillMatches >= 1 || anySkillMatches >= 2;
+    // Include if: has core skill match OR has 1+ skill matches (relaxed from 2+ to avoid over-filtering)
+    // If candidate has no core skills defined, we definitely want to fall back to any skill match.
+    return coreSkillMatches >= 1 || anySkillMatches >= 1;
   });
 }
 
