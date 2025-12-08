@@ -11,6 +11,7 @@ Next.js app that matches your resume or portfolio with live job postings using A
 - **Live Console**: Real-time progress tracking during crawling and analysis
 - **Export Options**: Download results as JSON or CSV
 - **Dark Theme**: Professional black and green interface
+- **Comprehensive Testing**: Unit and E2E tests with Vitest and Playwright
 
 ## Setup
 
@@ -164,9 +165,91 @@ Next.js app that matches your resume or portfolio with live job postings using A
 4. Review AI-matched job opportunities with scores and tailored pitches
 5. Export results or copy outreach emails
 
+## Testing
+
+The application includes comprehensive test coverage with both unit and E2E tests.
+
+### Run Tests
+
+```bash
+# Unit tests (fast, no API keys needed)
+npm test              # Watch mode
+npm run test:unit     # Run once
+npm run test:coverage # With coverage report
+
+# E2E tests (require dev server)
+npm run test:e2e      # Run all E2E tests
+npm run test:e2e:ui   # Interactive UI mode
+npm run test:e2e:debug # Debug mode
+
+# Run all tests
+npm run test:all      # Unit + E2E
+```
+
+### Test Coverage
+
+- ✅ **AI Provider Detection** - Tests provider priority and configuration
+- ✅ **Job Crawling** - Tests Hyperbrowser integration with mocked responses
+- ✅ **Matching Logic** - Tests job scoring, export formatting, and email generation
+- 📝 **E2E Flows** - Browser tests for resume upload and portfolio analysis
+
+**Current Status:** 21 unit tests passing
+
+### Documentation
+
+- Full testing guide: [`tests/README.md`](tests/README.md)
+- Testing summary: [`TESTING_SUMMARY.md`](TESTING_SUMMARY.md)
+- Test fixtures and mocks: `tests/fixtures/`
+
+### Testing Stack
+
+- **Vitest** - Fast unit testing with TypeScript support
+- **Playwright** - Reliable E2E browser automation
+- **React Testing Library** - Component testing utilities
+
 ## Growth Use Case
 
 Perfect for job seekers who want to automate the discovery and matching process with real-time job market data, demonstrating Hyperbrowser's ability to turn any website into structured data.
+
+## Deployment
+
+This app is deployed to `resume-hunter.jbresearch-llc.com` using a VPS with nginx, PM2, and Let's Encrypt SSL.
+
+### Quick Deployment Workflow
+
+```bash
+# 1. Commit and push changes locally
+git add .
+git commit -m "Your update message"
+git push origin master
+
+# 2. SSH to VPS and update
+ssh user@45.90.109.196
+cd /var/www/resume-hunter
+./deployment/update-app.sh
+```
+
+### Deployment Resources
+
+- **Quick Start Guide**: [`deployment/QUICKSTART.md`](deployment/QUICKSTART.md) - 5-minute deployment guide
+- **Full Deployment Guide**: [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md) - Complete setup instructions
+- **Git Workflow Guide**: [`deployment/GIT_WORKFLOW.md`](deployment/GIT_WORKFLOW.md) - Git-based deployment workflow
+- **Deployment Overview**: [`deployment/README.md`](deployment/README.md) - Overview of all deployment files
+- **Automated Deploy Script**: [`deployment/deploy.sh`](deployment/deploy.sh) - One-command initial deployment
+- **Update Script**: [`deployment/update-app.sh`](deployment/update-app.sh) - Quick update from git
+- **PM2 Config Template**: [`deployment/ecosystem.config.js`](deployment/ecosystem.config.js) - Process manager configuration template
+- **Nginx Config**: [`deployment/nginx/resume-hunter.jbresearch-llc.com.conf`](deployment/nginx/resume-hunter.jbresearch-llc.com.conf) - Reverse proxy setup
+- **Scripts Guide**: [`scripts/README.md`](scripts/README.md) - Hostinger API scripts documentation
+
+### Production Setup
+
+- **Repository**: https://github.com/gametimebrizzle/deep-ai-job-researcher.git
+- **Deployed URL**: https://resume-hunter.jbresearch-llc.com
+- **VPS**: 45.90.109.196 (Hostinger)
+- **App Port**: 3030
+- **Process Manager**: PM2
+- **Web Server**: Nginx (reverse proxy)
+- **SSL**: Let's Encrypt (auto-renewal)
 
 ## Future enhancements
 
