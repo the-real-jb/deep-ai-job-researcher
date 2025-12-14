@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { llmMatch, JobMatch } from '@/lib/match';
-import { crawlLinkedInJobs, JobListing } from '@/lib/jobs';
+import { JobListing } from '@/lib/jobs';
 import { CandidateProfile } from '@/lib/candidate';
 import * as aiProvider from '@/lib/ai-provider';
-import * as hb from '@/lib/hb';
 
 // Mock the AI provider
 vi.mock('@/lib/ai-provider', () => ({
   createChatCompletion: vi.fn(),
   detectProvider: vi.fn().mockReturnValue('openai'),
-}));
-
-// Mock Hyperbrowser
-vi.mock('@/lib/hb', () => ({
-  withClient: vi.fn(),
 }));
 
 describe('LINKEDIN_FEATURE.md Claims Validation', () => {
@@ -183,41 +177,6 @@ describe('LINKEDIN_FEATURE.md Claims Validation', () => {
       expect(match.scoreBreakdown?.experienceMatch).toBe(25);
       expect(match.scoreBreakdown?.projectMatch).toBe(15);
       expect(match.scoreBreakdown?.preferenceMatch).toBe(15);
-    });
-  });
-
-  describe('Claim: LinkedIn Job Crawling', () => {
-    it('should search LinkedIn with keywords and parse results', async () => {
-      // Mock scraping result
-      const mockScrapeResult = {
-        data: {
-          markdown: `
-            [Senior React Developer](https://www.linkedin.com/jobs/view/123)
-            Tech Corp
-            San Francisco, CA (Remote)
-            
-            [Java Developer](https://www.linkedin.com/jobs/view/456)
-            Old Corp
-            New York, NY
-          `,
-        },
-      };
-
-      (hb.withClient as any).mockImplementation((callback: any) => {
-        return callback({
-          scrape: {
-            startAndWait: vi.fn().mockResolvedValue(mockScrapeResult),
-          },
-        });
-      });
-
-      const jobs = await crawlLinkedInJobs(['React', 'TypeScript'], 'United States');
-
-      expect(jobs.length).toBeGreaterThan(0);
-      expect(jobs[0].title).toBe('Senior React Developer');
-      expect(jobs[0].company).toBe('Tech Corp');
-      expect(jobs[0].source).toBe('LinkedIn Jobs');
-      expect(jobs[0].remote).toBe(true);
     });
   });
 

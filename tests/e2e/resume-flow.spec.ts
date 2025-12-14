@@ -21,10 +21,10 @@ test.describe('Resume Upload Flow', () => {
 
   test('should display the resume upload interface by default', async ({ page }) => {
     // Check that resume mode is selected
-    await expect(page.getByText('Resume')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
 
     // Check for upload area
-    await expect(page.getByText('drag & drop', { exact: false })).toBeVisible();
+    await expect(page.getByText('Drop your resume here')).toBeVisible();
   });
 
   test('should switch between resume and portfolio modes', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('Resume Upload Flow', () => {
     await page.getByRole('button', { name: /resume/i }).click();
 
     // Check that upload area is shown again
-    await expect(page.getByText('drag & drop', { exact: false })).toBeVisible();
+    await expect(page.getByText('Drop your resume here')).toBeVisible();
   });
 
   test('should reject non-PDF files', async ({ page }) => {
@@ -63,35 +63,59 @@ test.describe('Resume Upload Flow', () => {
     // (Exact behavior depends on implementation)
   });
 
-  test.skip('should process PDF resume and show results', async ({ page }) => {
-    /**
-     * SKIPPED: This test requires actual API keys and makes real API calls
-     *
-     * To enable:
-     * 1. Set valid API keys in .env.local
-     * 2. Remove test.skip
-     * 3. Create a sample PDF resume in tests/fixtures/sample-resume.pdf
-     */
+  test('should process PDF resume and show results', async ({ page }) => {
+    // Mock the API response
+    await page.route('/api/analyze/resume', async route => {
+      const json = {
+        success: true,
+        candidate: {
+          name: 'Test User',
+          headline: 'Full Stack Developer',
+          skills: ['React', 'Node.js'],
+          yearsExperience: 5,
+          topProjects: [],
+          suggestions: []
+        },
+        matches: [
+          {
+            title: 'Senior Frontend Engineer',
+            company: 'Tech Corp',
+            url: 'https://example.com/job1',
+            score: 95,
+            scoreBreakdown: { skillMatch: 95 },
+            pitch: 'Great match!',
+            requiredSkills: ['React'],
+            missingSkills: [],
+            location: 'Remote',
+            remote: true,
+            source: 'LinkedIn'
+          }
+        ],
+        jobsFound: 1
+      };
+      await route.fulfill({ json });
+    });
+
+    // Create a dummy PDF buffer
+    const buffer = Buffer.from('%PDF-1.4\n%...');
 
     // Get file input
     const fileInput = page.locator('input[type="file"]');
 
     // Upload PDF file
-    const pdfPath = path.join(__dirname, '../fixtures/sample-resume.pdf');
-    await fileInput.setInputFiles(pdfPath);
+    await fileInput.setInputFiles({
+      name: 'resume.pdf',
+      mimeType: 'application/pdf',
+      buffer
+    });
 
-    // Wait for processing to start
-    await expect(page.getByText(/analyzing/i)).toBeVisible({ timeout: 5000 });
+    // Click analyze button
+    await page.getByRole('button', { name: /Analyze Resume/i }).click();
 
-    // Wait for results (this may take a while with real API calls)
-    await expect(page.getByText(/complete/i)).toBeVisible({ timeout: 60000 });
-
-    // Check that results table is shown
-    await expect(page.locator('table')).toBeVisible();
-
-    // Check that matches are displayed
-    const rows = page.locator('tbody tr');
-    await expect(rows.first()).toBeVisible();
+    // Wait for results (mocked API returns instantly)
+    await expect(page.getByText('Senior Frontend Engineer')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Tech Corp')).toBeVisible();
+    await expect(page.getByText('95')).toBeVisible();
   });
 
   test('should show live console during processing', async ({ page }) => {
@@ -135,6 +159,6 @@ test.describe('Resume Upload Flow', () => {
 
     // Page should still be functional
     await expect(page.locator('h1')).toBeVisible();
-    await expect(page.getByText('drag & drop', { exact: false })).toBeVisible();
+    await expect(page.getByText('Drop your resume here')).toBeVisible();
   });
 });

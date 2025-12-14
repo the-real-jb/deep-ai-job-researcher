@@ -11,27 +11,40 @@ test.describe('LinkedIn Integration Flow', () => {
     await expect(linkedinTab).toBeVisible();
     await linkedinTab.click();
 
-    // 2. Verify inputs exist
-    await expect(page.getByText('Upload Resume (PDF)')).toBeVisible();
-    await expect(page.getByPlaceholder('https://www.linkedin.com/in/username')).toBeVisible();
+    // 2. Wait for mode transition and verify inputs exist
+    await page.waitForTimeout(500); // Wait for any animations
+    await expect(page.getByText('1. Upload Your Resume')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByPlaceholder('https://www.linkedin.com/in/yourprofile')).toBeVisible();
     
     // 3. Verify analyze button exists (disabled initially or enabled depends on state, assuming check for presence)
-    await expect(page.getByRole('button', { name: /Analyze/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Analyze LinkedIn Profile/i })).toBeVisible();
   });
 
   test('should validate LinkedIn URL format', async ({ page }) => {
     await page.getByRole('button', { name: /LinkedIn/i }).click();
+    await page.waitForTimeout(500); // Wait for mode transition
 
-    const urlInput = page.getByPlaceholder('https://www.linkedin.com/in/username');
+    // First upload a file so button becomes enabled
+    const buffer = Buffer.from('%PDF-1.4\n%...');
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles({
+      name: 'resume.pdf',
+      mimeType: 'application/pdf',
+      buffer
+    });
+
+    const urlInput = page.getByPlaceholder('https://www.linkedin.com/in/yourprofile');
+    await expect(urlInput).toBeVisible();
     
     // Type invalid URL
     await urlInput.fill('https://facebook.com/me');
-    await urlInput.blur(); // Trigger validation if onBlur
-
-    // Check for error message (assuming UI shows one, otherwise check if submission is blocked)
-    // Based on typical implementation, invalid inputs usually show red border or message
-    // If exact UI behavior isn't known, we'll check that we can't submit or error appears on submit.
-    // Let's assume standard HTML validation or component validation.
+    
+    // Click the submit button to trigger validation
+    const submitButton = page.getByRole('button', { name: /Analyze LinkedIn Profile/i });
+    await submitButton.click();
+    
+    // Should show error message for invalid LinkedIn URL
+    await expect(page.getByText(/linkedin\.com/i)).toBeVisible({ timeout: 5000 });
   });
 
   test('should successfully simulate a LinkedIn analysis flow', async ({ page }) => {
@@ -104,28 +117,27 @@ test.describe('LinkedIn Integration Flow', () => {
 
     // 1. Navigate and Select Mode
     await page.getByRole('button', { name: /LinkedIn/i }).click();
+    await page.waitForTimeout(500); // Wait for mode transition
 
     // 2. Upload Dummy PDF
-    // Create a buffer for a dummy PDF
-    const buffer = Buffer.from('%PDF-1.4\n%...'); 
-    await page.setInputFiles('input[type="file"]', {
+    const buffer = Buffer.from('%PDF-1.4\n%...');
+    const fileInput = page.locator('#linkedin-file-input');
+    await fileInput.setInputFiles({
       name: 'resume.pdf',
       mimeType: 'application/pdf',
       buffer
     });
 
     // 3. Enter LinkedIn URL
-    await page.getByPlaceholder('https://www.linkedin.com/in/username').fill('https://www.linkedin.com/in/testuser');
+    const urlInput = page.getByPlaceholder('https://www.linkedin.com/in/yourprofile');
+    await urlInput.fill('https://www.linkedin.com/in/testuser');
 
-    // 4. Submit
-    // Wait for button to be enabled (if file/url required)
-    await page.getByRole('button', { name: /Analyze/i }).click();
+    // 4. Submit - wait for button to be enabled
+    const submitButton = page.getByRole('button', { name: /Analyze LinkedIn Profile/i });
+    await expect(submitButton).toBeEnabled({ timeout: 5000 });
+    await submitButton.click();
 
-    // 5. Verify Loading State
-    // "Searching for jobs..." or similar text from console
-    await expect(page.locator('[data-testid="live-console"]').or(page.getByText(/analyzing|searching/i))).toBeVisible();
-
-    // 6. Verify Results
+    // 5. Verify Results (mocked API returns instantly)
     // Check if matches appear
     await expect(page.getByText('Senior Frontend Engineer')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Tech Corp')).toBeVisible();
@@ -138,4 +150,3 @@ test.describe('LinkedIn Integration Flow', () => {
     // (Depends on UI, maybe "Enhanced Profile" badge or similar)
   });
 });
-

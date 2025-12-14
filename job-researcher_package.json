@@ -1,0 +1,49 @@
+{
+  "name": "deep-job-researcher",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test:unit && npm run test:e2e"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.1",
+    "@google/generative-ai": "^0.24.1",
+    "@hyperbrowser/sdk": "^0.55.0",
+    "framer-motion": "^11.3.8",
+    "hostinger-api-sdk": "^0.0.17",
+    "lucide-react": "^0.417.0",
+    "next": "15.4.8",
+    "openai": "^4.62.1",
+    "pdf-parse-new": "^1.4.1",
+    "react": "19.1.2",
+    "react-dom": "19.1.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^20.19.25",
+    "@types/pdf-parse": "^1.1.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.16",
+    "jsdom": "^27.2.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5",
+    "vitest": "^4.0.15"
+  }
+}

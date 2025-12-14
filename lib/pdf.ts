@@ -16,7 +16,27 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     try {
       console.log('Trying pdf-parse-new...');
       const pdfParse = await import('pdf-parse-new');
-      const data = await pdfParse.default(buffer);
+      
+      // Silence noisy pdf-parse logs
+      const originalLog = console.log;
+      const originalInfo = console.info;
+      const originalWarn = console.warn;
+      
+      // Temporarily disable console output for pdf-parse
+      console.log = () => {};
+      console.info = () => {};
+      console.warn = () => {};
+
+      let data;
+      try {
+        data = await pdfParse.default(buffer);
+      } finally {
+        // Restore console
+        console.log = originalLog;
+        console.info = originalInfo;
+        console.warn = originalWarn;
+      }
+
       console.log('pdf-parse-new result:', { pages: data.numpages, textLength: data.text?.length || 0 });
       
       if (data.text && data.text.trim().length > 50) {

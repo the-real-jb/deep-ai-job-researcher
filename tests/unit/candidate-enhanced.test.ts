@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { buildCandidateProfile, buildLinkedInEnhancedProfile } from '@/lib/candidate';
+import { buildCandidateProfile } from '@/lib/candidate';
 
 // Mock AI provider
 vi.mock('@/lib/ai-provider', () => ({
@@ -8,7 +8,7 @@ vi.mock('@/lib/ai-provider', () => ({
 
 describe('Enhanced Candidate Profile', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should extract core and secondary skills from resume', async () => {
@@ -117,54 +117,6 @@ describe('Enhanced Candidate Profile', () => {
 
     const principalProfile = await buildCandidateProfile('Principal resume');
     expect(principalProfile.experienceLevel).toBe('principal');
-  });
-
-  it('should merge resume and LinkedIn data in enhanced profile', async () => {
-    const { createChatCompletion } = await import('@/lib/ai-provider');
-
-    // Mock resume profile
-    vi.mocked(createChatCompletion).mockResolvedValueOnce({
-      content: JSON.stringify({
-        name: 'John Doe',
-        skills: ['React', 'Node.js'],
-        coreSkills: ['React', 'Node.js'],
-        yearsExperience: 5,
-        topProjects: ['Project A'],
-        gaps: [],
-        suggestions: [],
-      }),
-    });
-
-    // Mock LinkedIn data extraction
-    vi.mocked(createChatCompletion).mockResolvedValueOnce({
-      content: JSON.stringify({
-        endorsements: [
-          { skill: 'React', count: 45 },
-          { skill: 'Node.js', count: 38 },
-        ],
-        topSkills: ['React', 'Node.js', 'TypeScript'],
-        additionalSkills: ['TypeScript', 'GraphQL'],
-        connections: 500,
-        recommendations: 12,
-        currentLocation: 'San Francisco, CA',
-      }),
-    });
-
-    const enhancedProfile = await buildLinkedInEnhancedProfile(
-      'Resume text',
-      'LinkedIn text',
-      'https://linkedin.com/in/test'
-    );
-
-    expect(enhancedProfile.skills).toContain('React');
-    expect(enhancedProfile.skills).toContain('Node.js');
-    expect(enhancedProfile.skills).toContain('TypeScript'); // From LinkedIn
-    expect(enhancedProfile.skills).toContain('GraphQL'); // From LinkedIn
-    expect(enhancedProfile.linkedIn).toBeDefined();
-    expect(enhancedProfile.linkedIn?.connections).toBe(500);
-    expect(enhancedProfile.linkedIn?.recommendations).toBe(12);
-    expect(enhancedProfile.linkedIn?.profileUrl).toBe('https://linkedin.com/in/test');
-    expect(enhancedProfile.location).toBe('San Francisco, CA');
   });
 
   it('should handle missing optional fields gracefully', async () => {

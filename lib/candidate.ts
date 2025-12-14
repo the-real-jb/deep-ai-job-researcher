@@ -1,4 +1,4 @@
-import { createChatCompletion } from './ai-provider';
+import { createChatCompletion, AuthContext } from './ai-provider';
 
 export interface CandidatePreferences {
   desiredRoles?: string[];
@@ -6,14 +6,6 @@ export interface CandidatePreferences {
   remoteOnly?: boolean;
   companySizePreference?: 'startup' | 'midsize' | 'enterprise' | 'any';
   industryPreferences?: string[];
-}
-
-export interface LinkedInData {
-  profileUrl?: string;
-  connections?: number;
-  endorsements?: { skill: string; count: number }[];
-  recommendations?: number;
-  topSkills?: string[]; // Skills with most endorsements
 }
 
 export interface CandidateProfile {
@@ -28,11 +20,13 @@ export interface CandidateProfile {
   gaps: string[];
   suggestions: string[];
   preferences?: CandidatePreferences;
-  linkedIn?: LinkedInData;
   location?: string;
 }
 
-export async function buildCandidateProfile(text: string): Promise<CandidateProfile> {
+export async function buildCandidateProfile(
+  text: string,
+  authContext?: AuthContext
+): Promise<CandidateProfile> {
   try {
     const result = await createChatCompletion(
       [
@@ -69,7 +63,8 @@ export async function buildCandidateProfile(text: string): Promise<CandidateProf
       {
         responseFormat: { type: 'json_object' },
         temperature: 0.3,
-      }
+      },
+      authContext
     );
 
     const content = result.content;
@@ -94,73 +89,6 @@ export async function buildCandidateProfile(text: string): Promise<CandidateProf
     console.error('Error building candidate profile:', error);
     throw new Error(
       `Failed to analyze candidate profile: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
-  }
-}
-
-export async function buildLinkedInEnhancedProfile(
-  resumeText: string,
-  linkedInText: string,
-  linkedInUrl: string
-): Promise<CandidateProfile> {
-  try {
-    // First, build base profile from resume
-    const baseProfile = await buildCandidateProfile(resumeText);
-
-    // Extract LinkedIn-specific data
-    const linkedInResult = await createChatCompletion(
-      [
-        {
-          role: 'system',
-          content: `Extract LinkedIn-specific information from the profile text. Return a JSON object:
-          {
-            "endorsements": [{"skill": "string", "count": number}],
-            "topSkills": ["array of skills with most endorsements"],
-            "connections": number,
-            "recommendations": number,
-            "additionalSkills": ["skills mentioned on LinkedIn but not in resume"],
-            "currentLocation": "string"
-          }
-
-          Focus on extracting endorsement data, skill validations, and network information.`
-        },
-        {
-          role: 'user',
-          content: linkedInText
-        }
-      ],
-      {
-        responseFormat: { type: 'json_object' },
-        temperature: 0.3,
-      }
-    );
-
-    const linkedInData = JSON.parse(linkedInResult.content);
-
-    // Merge LinkedIn data with base profile
-    const mergedSkills = Array.from(
-      new Set([
-        ...baseProfile.skills,
-        ...(linkedInData.additionalSkills || [])
-      ])
-    );
-
-    return {
-      ...baseProfile,
-      skills: mergedSkills,
-      location: linkedInData.currentLocation || baseProfile.location,
-      linkedIn: {
-        profileUrl: linkedInUrl,
-        endorsements: linkedInData.endorsements || [],
-        topSkills: linkedInData.topSkills || [],
-        connections: linkedInData.connections,
-        recommendations: linkedInData.recommendations,
-      },
-    };
-  } catch (error) {
-    console.error('Error building LinkedIn enhanced profile:', error);
-    throw new Error(
-      `Failed to build LinkedIn enhanced profile: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockPortfolioText = 'Portfolio content with skills and projects...';
+const mockPortfolioText = 'Portfolio content with skills and projects. This is a very long string that should definitely be longer than one hundred characters so that the validation passes and we can test the rest of the flow. Ideally it contains meaningful content but for this test length matters more.';
 
 // Mock dependencies BEFORE importing the route
 vi.mock('@/lib/hb', () => ({
@@ -9,7 +9,7 @@ vi.mock('@/lib/hb', () => ({
       scrape: {
         startAndWait: vi.fn().mockResolvedValue({
           data: {
-            markdown: 'Portfolio content with skills and projects...',
+            markdown: 'Portfolio content with skills and projects. This is a very long string that should definitely be longer than one hundred characters so that the validation passes and we can test the rest of the flow. Ideally it contains meaningful content but for this test length matters more.',
             html: '<div>Portfolio content</div>',
           },
         }),
@@ -68,9 +68,19 @@ import { mockCandidateProfile, mockJobListings, mockJobMatches } from '../fixtur
  * 2. Moving these to E2E tests that make actual HTTP requests
  * 3. Using a test framework designed for Next.js API routes
  */
-describe.skip('POST /api/analyze/portfolio', () => {
-  beforeEach(() => {
+describe('POST /api/analyze/portfolio', () => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    
+    // Override mocks with fixture data to match expectations
+    const { buildCandidateProfile } = await import('@/lib/candidate');
+    vi.mocked(buildCandidateProfile).mockResolvedValue(mockCandidateProfile);
+
+    const { crawlJobSources } = await import('@/lib/jobs');
+    vi.mocked(crawlJobSources).mockResolvedValue(mockJobListings);
+
+    const { llmMatch } = await import('@/lib/match');
+    vi.mocked(llmMatch).mockResolvedValue(mockJobMatches);
   });
 
   it('should return 400 when no URL is provided', async () => {

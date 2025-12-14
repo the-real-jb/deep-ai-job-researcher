@@ -54,15 +54,39 @@ test.describe('Portfolio Analysis Flow', () => {
     await expect(urlInput).toHaveValue('https://example.com');
   });
 
-  test.skip('should process portfolio URL and show results', async ({ page }) => {
-    /**
-     * SKIPPED: This test requires actual API keys and makes real API calls
-     *
-     * To enable:
-     * 1. Set valid HYPERBROWSER_API_KEY and AI provider key in .env.local
-     * 2. Remove test.skip
-     * 3. Use a real portfolio URL that can be scraped
-     */
+  test('should process portfolio URL and show results', async ({ page }) => {
+    // Mock the API response
+    await page.route('/api/analyze/portfolio', async route => {
+      const json = {
+        success: true,
+        candidate: {
+          name: 'Portfolio User',
+          headline: 'Creative Developer',
+          skills: ['WebGL', 'Three.js'],
+          yearsExperience: 3,
+          topProjects: [],
+          suggestions: []
+        },
+        matches: [
+          {
+            title: 'Creative Technologist',
+            company: 'Agency XYZ',
+            url: 'https://example.com/job2',
+            score: 88,
+            scoreBreakdown: { skillMatch: 88 },
+            pitch: 'Perfect for your creative skills',
+            requiredSkills: ['WebGL'],
+            missingSkills: [],
+            location: 'New York',
+            remote: false,
+            source: 'Indeed'
+          }
+        ],
+        jobsFound: 1,
+        portfolioUrl: 'https://example.com/portfolio'
+      };
+      await route.fulfill({ json });
+    });
 
     const urlInput = page.getByPlaceholder(/https:\/\//i);
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
@@ -72,17 +96,10 @@ test.describe('Portfolio Analysis Flow', () => {
     await urlInput.fill(testUrl);
     await analyzeButton.click();
 
-    // Wait for processing to start
-    await expect(page.getByText(/analyzing|scraping/i)).toBeVisible({ timeout: 5000 });
-
-    // Wait for console messages
-    await expect(page.getByText(/\[SCRAPE\]|\[CRAWL\]/i)).toBeVisible({ timeout: 10000 });
-
-    // Wait for results (may take a while)
-    await expect(page.getByText(/complete/i)).toBeVisible({ timeout: 60000 });
-
-    // Check that results are displayed
-    await expect(page.locator('table')).toBeVisible();
+    // Wait for results (mocked API returns instantly)
+    await expect(page.getByText('Creative Technologist')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Agency XYZ')).toBeVisible();
+    await expect(page.getByText('88')).toBeVisible();
   });
 
   test('should show loading state during analysis', async ({ page }) => {
@@ -129,7 +146,7 @@ test.describe('Portfolio Analysis Flow', () => {
     await expect(page.getByPlaceholder(/https:\/\//i)).not.toBeVisible();
 
     // Resume upload should be visible
-    await expect(page.getByText('drag & drop', { exact: false })).toBeVisible();
+    await expect(page.getByText('Drop your resume here')).toBeVisible();
   });
 
   test('should clear results when switching modes', async ({ page }) => {

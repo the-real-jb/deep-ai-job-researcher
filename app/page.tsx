@@ -6,14 +6,13 @@ import { Search, Zap } from 'lucide-react';
 import ModeToggle from '@/components/ModeToggle';
 import ResumeUpload from '@/components/ResumeUpload';
 import UrlInput from '@/components/UrlInput';
-import LinkedInInput from '@/components/LinkedInInput';
 import LiveConsole from '@/components/LiveConsole';
 import MatchTable from '@/components/MatchTable';
 import ExportButtons from '@/components/ExportButtons';
 import { JobMatch } from '@/lib/match';
 import { CandidateProfile } from '@/lib/candidate';
 
-type AnalysisMode = 'resume' | 'portfolio' | 'linkedin';
+type AnalysisMode = 'resume' | 'portfolio';
 
 interface AnalysisState {
   isLoading: boolean;
@@ -53,16 +52,18 @@ export default function HomePage() {
   const handleResumeUpload = async (file: File) => {
     resetState();
     setState(prev => ({ ...prev, isLoading: true }));
-    
-    addConsoleMessage('[START] Beginning resume analysis...');
-    addConsoleMessage('[PDF] Extracting text from resume...');
+
+    addConsoleMessage('[INIT] Starting job search engine...');
+    addConsoleMessage(`[UPLOAD] Received resume: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+    addConsoleMessage('[PDF] Extracting text content from your resume...');
 
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      addConsoleMessage('[PROFILE] Building candidate profile with AI...');
-      
+      addConsoleMessage('[AI] Building your professional profile with AI...');
+      addConsoleMessage('[PROFILE] Analyzing skills, experience, and career preferences...');
+
       const response = await fetch('/api/analyze/resume', {
         method: 'POST',
         body: formData,
@@ -73,14 +74,36 @@ export default function HomePage() {
         throw new Error(errorData.error || 'Analysis failed');
       }
 
-      addConsoleMessage('[CRAWL] Starting job board crawling...');
-      addConsoleMessage('[SCRAPE] Gathering live job postings...');
-      
       const data = await response.json();
 
-      addConsoleMessage(`[PARSE] Found ${data.jobsFound} job opportunities`);
-      addConsoleMessage('[LLM] Analyzing job matches with AI...');
-      addConsoleMessage(`[COMPLETE] Analysis complete! Found ${data.matches.length} quality matches`);
+      // Show profile creation success
+      addConsoleMessage('[SUCCESS] Profile created successfully!');
+      if (data.candidate?.name) {
+        addConsoleMessage(`[PROFILE] Welcome, ${data.candidate.name}!`);
+      }
+      if (data.candidate?.skills?.length > 0) {
+        addConsoleMessage(`[SKILLS] Detected ${data.candidate.skills.length} skills: ${data.candidate.skills.slice(0, 5).join(', ')}${data.candidate.skills.length > 5 ? '...' : ''}`);
+      }
+      if (data.candidate?.yearsExperience) {
+        addConsoleMessage(`[EXPERIENCE] ${data.candidate.yearsExperience} years of experience (${data.candidate.experienceLevel || 'mid'} level)`);
+      }
+
+      addConsoleMessage('[CRAWL] Searching job boards in parallel...');
+      addConsoleMessage('[SOURCES] Indeed, LinkedIn, Google Jobs, RemoteOK, We Work Remotely, and more...');
+      addConsoleMessage(`[FOUND] Discovered ${data.jobsFound} job opportunities across all sources`);
+
+      addConsoleMessage('[AI] Using AI to analyze job compatibility...');
+      addConsoleMessage('[MATCH] Scoring jobs based on skills, experience, and preferences...');
+
+      if (data.matches.length > 0) {
+        addConsoleMessage(`[SUCCESS] Found ${data.matches.length} quality matches for you!`);
+        const topMatch = data.matches[0];
+        addConsoleMessage(`[TOP] Best match: ${topMatch.title} at ${topMatch.company} (${topMatch.score}% match)`);
+      } else {
+        addConsoleMessage('[INFO] No strong matches found. Try updating your resume with more keywords.');
+      }
+
+      addConsoleMessage('[DONE] Analysis complete! Results are ready below.');
 
       setState(prev => ({
         ...prev,
@@ -92,7 +115,8 @@ export default function HomePage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Resume upload error:', error);
-      addConsoleMessage(`[ERROR] ${errorMessage}`);
+      addConsoleMessage(`[ERROR] Analysis failed: ${errorMessage}`);
+      addConsoleMessage('[HELP] Please check your resume format and try again.');
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -104,13 +128,15 @@ export default function HomePage() {
   const handlePortfolioSubmit = async (url: string) => {
     resetState();
     setState(prev => ({ ...prev, isLoading: true }));
-    
-    addConsoleMessage('[START] Beginning portfolio analysis...');
-    addConsoleMessage(`[SCRAPE] Scraping portfolio: ${url}`);
+
+    addConsoleMessage('[INIT] Starting job search engine...');
+    addConsoleMessage(`[URL] Analyzing portfolio: ${url}`);
+    addConsoleMessage('[SCRAPE] Fetching website content with Hyperbrowser...');
 
     try {
-      addConsoleMessage('[PROFILE] Building candidate profile from portfolio...');
-      
+      addConsoleMessage('[AI] Extracting professional information from your portfolio...');
+      addConsoleMessage('[PROFILE] Identifying skills, projects, and experience...');
+
       const response = await fetch('/api/analyze/portfolio', {
         method: 'POST',
         headers: {
@@ -124,68 +150,36 @@ export default function HomePage() {
         throw new Error(errorData.error || 'Analysis failed');
       }
 
-      addConsoleMessage('[CRAWL] Starting job board crawling...');
-      addConsoleMessage('[SCRAPE] Gathering live job postings...');
-      
       const data = await response.json();
 
-      addConsoleMessage(`[PARSE] Found ${data.jobsFound} job opportunities`);
-      addConsoleMessage('[LLM] Analyzing job matches with AI...');
-      addConsoleMessage(`[COMPLETE] Analysis complete! Found ${data.matches.length} quality matches`);
-
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        candidate: data.candidate,
-        matches: data.matches,
-      }));
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      addConsoleMessage(`[ERROR] ${errorMessage}`);
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
-    }
-  };
-
-  const handleLinkedInSubmit = async (file: File, linkedInUrl: string) => {
-    resetState();
-    setState(prev => ({ ...prev, isLoading: true }));
-
-    addConsoleMessage('[START] Beginning LinkedIn enhanced analysis...');
-    addConsoleMessage('[PDF] Extracting text from resume...');
-    addConsoleMessage(`[LINKEDIN] Scraping profile: ${linkedInUrl}`);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('linkedInUrl', linkedInUrl);
-
-      addConsoleMessage('[PROFILE] Building enhanced candidate profile...');
-      addConsoleMessage('[LINKEDIN] Merging resume + LinkedIn data...');
-
-      const response = await fetch('/api/analyze/linkedin', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+      // Show profile creation success
+      addConsoleMessage('[SUCCESS] Profile created from portfolio!');
+      if (data.candidate?.name) {
+        addConsoleMessage(`[PROFILE] Welcome, ${data.candidate.name}!`);
+      }
+      if (data.candidate?.skills?.length > 0) {
+        addConsoleMessage(`[SKILLS] Found ${data.candidate.skills.length} skills: ${data.candidate.skills.slice(0, 5).join(', ')}${data.candidate.skills.length > 5 ? '...' : ''}`);
+      }
+      if (data.candidate?.topProjects?.length > 0) {
+        addConsoleMessage(`[PROJECTS] Highlighted projects: ${data.candidate.topProjects.slice(0, 3).join(', ')}`);
       }
 
-      addConsoleMessage('[CRAWL] Searching LinkedIn jobs with your skills...');
-      addConsoleMessage('[CRAWL] Also checking other job boards...');
+      addConsoleMessage('[CRAWL] Searching job boards in parallel...');
+      addConsoleMessage('[SOURCES] Indeed, LinkedIn, Google Jobs, RemoteOK, We Work Remotely, and more...');
+      addConsoleMessage(`[FOUND] Discovered ${data.jobsFound} job opportunities across all sources`);
 
-      const data = await response.json();
+      addConsoleMessage('[AI] Using AI to analyze job compatibility...');
+      addConsoleMessage('[MATCH] Scoring jobs based on your portfolio skills and projects...');
 
-      addConsoleMessage(`[PARSE] Found ${data.linkedInJobsFound} LinkedIn jobs`);
-      addConsoleMessage(`[PARSE] Found ${data.otherJobsFound} jobs from other sources`);
-      addConsoleMessage('[LLM] Analyzing job matches with enhanced profile...');
-      addConsoleMessage(`[COMPLETE] Analysis complete! Found ${data.matches.length} quality matches`);
+      if (data.matches.length > 0) {
+        addConsoleMessage(`[SUCCESS] Found ${data.matches.length} quality matches for you!`);
+        const topMatch = data.matches[0];
+        addConsoleMessage(`[TOP] Best match: ${topMatch.title} at ${topMatch.company} (${topMatch.score}% match)`);
+      } else {
+        addConsoleMessage('[INFO] No strong matches found. Try adding more projects to your portfolio.');
+      }
+
+      addConsoleMessage('[DONE] Analysis complete! Results are ready below.');
 
       setState(prev => ({
         ...prev,
@@ -196,8 +190,9 @@ export default function HomePage() {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('LinkedIn analysis error:', error);
-      addConsoleMessage(`[ERROR] ${errorMessage}`);
+      console.error('Portfolio analysis error:', error);
+      addConsoleMessage(`[ERROR] Analysis failed: ${errorMessage}`);
+      addConsoleMessage('[HELP] Make sure the URL is accessible and contains portfolio content.');
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -232,7 +227,7 @@ export default function HomePage() {
             or share your portfolio to find personalized job opportunities.
           </p>
           <div className="mt-4 text-sm text-gray-500">
-            Powered by <span className="text-accent">Hyperbrowser</span> • Built with OpenAI
+            Powered by <span className="text-accent">Hyperbrowser</span> • Searching Indeed, LinkedIn, Google Jobs, and more
           </div>
         </motion.div>
 
@@ -246,14 +241,9 @@ export default function HomePage() {
               onFileUpload={handleResumeUpload}
               isLoading={state.isLoading}
             />
-          ) : mode === 'portfolio' ? (
+          ) : (
             <UrlInput
               onUrlSubmit={handlePortfolioSubmit}
-              isLoading={state.isLoading}
-            />
-          ) : (
-            <LinkedInInput
-              onSubmit={handleLinkedInSubmit}
               isLoading={state.isLoading}
             />
           )}

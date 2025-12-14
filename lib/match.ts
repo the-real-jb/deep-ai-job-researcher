@@ -120,7 +120,6 @@ async function processBatch(
         Location: ${candidate.location || 'Not specified'}
         ${candidate.preferences?.remoteOnly ? 'Preference: Remote only' : ''}
         ${candidate.preferences?.desiredRoles ? `Desired Roles: ${candidate.preferences.desiredRoles.join(', ')}` : ''}
-        ${candidate.linkedIn?.topSkills ? `LinkedIn Top Skills: ${candidate.linkedIn.topSkills.join(', ')}` : ''}
 
         Jobs:
         ${jobs.map((job, i) => `

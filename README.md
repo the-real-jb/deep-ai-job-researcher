@@ -96,8 +96,8 @@ Next.js app that matches your resume or portfolio with live job postings using A
    | **Anthropic/Claude** | `claude-haiku-4-5` | | Balanced performance |
    | **Anthropic/Claude** | `claude-3-5-haiku-latest` | | Fastest and affordable* |
    | **Anthropic/Claude** | Any other Claude model `†` | | Use any available Claude model by setting `ANTHROPIC_MODEL` |
-   | **Google/Gemini** | `gemini-1.5-flash` | Yes | Fast and efficient |
-   | **Google/Gemini** | `gemini-1.5-pro` | | More capable |
+   | **Google/Gemini** | `gemini-2.5-flash` | Yes | Fast and efficient |
+   | **Google/Gemini** | `gemini-2.5-pro` | | More capable |
    | **Google/Gemini** | `gemini-pro` | | Legacy option |
 
    **Claude Model [foot]Notes:**
@@ -116,25 +116,25 @@ Next.js app that matches your resume or portfolio with live job postings using A
 
    - **OpenAI**: `gpt-4o` or `gpt-4o-mini` - Excellent at structured data extraction and understanding technical skills
    - **Claude**: `claude-3-7-sonnet-latest` (recommended) or `claude-opus-4-0` - Superior at understanding context and career progression
-   - **Google AI**: `gemini-1.5-pro` - Strong at parsing complex resume formats and extracting nuanced information
+   - **Google AI**: `gemini-2.5-pro` - Strong at parsing complex resume formats and extracting nuanced information
 
    **For Job Matching & Scoring:**
 
    - **OpenAI**: `gpt-4o` (recommended) - Best balance of accuracy and cost for matching algorithms
    - **Claude**: `claude-sonnet-4-0` (recommended) - Excellent at understanding job requirements and candidate fit
-   - **Google AI**: `gemini-1.5-pro` - Good for complex matching scenarios with multiple criteria
+   - **Google AI**: `gemini-2.5-pro` - Good for complex matching scenarios with multiple criteria
 
    **Cost-Effective Options (Good Quality, Lower Cost):**
 
    - **OpenAI**: `gpt-4o-mini` - Fast and affordable, suitable for high-volume processing
    - **Claude**: `claude-3-5-haiku-latest` - Fastest Claude model, good for quick analysis
-   - **Google AI**: `gemini-1.5-flash` - Very fast and cost-effective
+   - **Google AI**: `gemini-2.5-flash` - Very fast and cost-effective
 
    **Best Overall Recommendations:**
 
    - **Best Quality**: `claude-3-7-sonnet-latest` or `gpt-4o` - Superior understanding of career context and job requirements
-   - **Best Value**: `gpt-4o-mini` or `gemini-1.5-flash` - Excellent quality-to-cost ratio
-   - **Best Speed**: `gemini-1.5-flash` or `claude-3-haiku-20240307` - Fastest responses for real-time matching
+   - **Best Value**: `gpt-4o-mini` or `gemini-2.5-flash` - Excellent quality-to-cost ratio
+   - **Best Speed**: `gemini-2.5-flash` or `claude-3-haiku-20240307` - Fastest responses for real-time matching
 
    **Example Configuration for High-Quality Matching:**
 

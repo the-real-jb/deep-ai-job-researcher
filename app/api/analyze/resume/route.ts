@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { extractTextFromPDF } from '@/lib/pdf';
 import { buildCandidateProfile } from '@/lib/candidate';
 import { crawlJobSources } from '@/lib/jobs';
 import { llmMatch } from '@/lib/match';
+import { AuthContext } from '@/lib/ai-provider';
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token');
+    const isAuthenticated = token?.value === 'authenticated';
+
+    const authContext: AuthContext = { isAuthenticated };
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -57,10 +65,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Build candidate profile
-    const candidate = await buildCandidateProfile(resumeText);
+    console.log('Building candidate profile...');
+    const candidate = await buildCandidateProfile(resumeText, authContext);
+    console.log('Candidate profile built:', candidate.headline);
 
     // Crawl job sources (this will be streamed in a real implementation)
-    const jobs = await crawlJobSources();
+    console.log('Starting job crawl...');
+    const jobs = await crawlJobSources((msg) => console.log(msg));
+    console.log(`Job crawl complete. Found ${jobs.length} jobs.`);
+
+
 
     if (jobs.length === 0) {
       return NextResponse.json(

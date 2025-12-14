@@ -194,24 +194,24 @@ describe('LINKEDIN_FEATURE.md Claims Validation', () => {
       expect(aiProvider.createChatCompletion).not.toHaveBeenCalled();
     });
 
-    it('should filter out job if only 1 regular skill matches and no core skills', async () => {
+    it('should include job if only 1 regular skill matches (relaxed filtering)', async () => {
       const candidateOneSkill: CandidateProfile = {
         ...mockCandidate,
         skills: ['React'],
         coreSkills: [], // No core skills
       };
 
-      // Job 1 has 'React' and 'TypeScript'.
-      // Job 3 has 'React'.
-      // Logic: anySkillMatches >= 2.
-      // Job 3 matches 'React' (1 match). Should be filtered out.
-      
       const jobs = [mockJobs[2]]; // Frontend Engineer (React only mentioned in desc)
+
+      // Mock successful response
+      (aiProvider.createChatCompletion as any).mockResolvedValue({
+        content: JSON.stringify({ matches: [] }),
+      });
 
       await llmMatch(candidateOneSkill, jobs);
 
-      // Should be filtered out because 1 < 2
-      expect(aiProvider.createChatCompletion).not.toHaveBeenCalled();
+      // With relaxed filtering (≥1 skill match), should NOT be filtered out
+      expect(aiProvider.createChatCompletion).toHaveBeenCalledTimes(1);
     });
   });
 });
