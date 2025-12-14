@@ -185,10 +185,8 @@ class GoogleProvider extends BaseAiProvider {
 
   private getModel(options: ChatCompletionOptions): string {
     const envModel = process.env.GOOGLE_AI_MODEL;
-    if (envModel === 'gemini-1.5-flash' || envModel === 'gemini-1.5-flash-001') {
-      return 'gemini-2.5-flash';
-    }
-    return envModel || 'gemini-2.5-flash';
+    // Use the environment model if set, otherwise default to gemini-1.5-pro
+    return envModel || 'gemini-1.5-pro';
   }
 
   async createChatCompletion(
@@ -238,25 +236,17 @@ class GoogleProvider extends BaseAiProvider {
 
 /**
  * Detects which AI provider to use based on available environment variables.
- * Priority: OPENAI_API_KEY > ANTHROPIC_API_KEY > GOOGLE_AI_API_KEY/GEMINI_API_KEY
+ * Modified to only use OpenAI when available, disable other providers
  */
 export function detectProvider(authContext?: AuthContext): AIProvider {
-  // Unauthenticated users are restricted to Google provider
-  if (authContext && !authContext.isAuthenticated) {
-    return 'google';
-  }
-
+  // Only use OpenAI if available
   if (process.env.OPENAI_API_KEY) {
     return 'openai';
   }
-  if (process.env.ANTHROPIC_API_KEY) {
-    return 'claude';
-  }
-  if (process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY) {
-    return 'google';
-  }
+  
+  // Disable other providers - only OpenAI is supported
   throw new Error(
-    'No AI provider API key found. Please set one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_AI_API_KEY, or GEMINI_API_KEY'
+    'OpenAI API key is required. Please set OPENAI_API_KEY environment variable.'
   );
 }
 

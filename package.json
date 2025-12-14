@@ -20,6 +20,7 @@
     "@anthropic-ai/sdk": "^0.71.1",
     "@google/generative-ai": "^0.24.1",
     "@hyperbrowser/sdk": "^0.55.0",
+    "dotenv": "^17.2.3",
     "framer-motion": "^11.3.8",
     "hostinger-api-sdk": "^0.0.17",
     "lucide-react": "^0.417.0",
