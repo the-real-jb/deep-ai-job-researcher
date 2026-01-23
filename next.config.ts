@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Ensure proper React 19 support
+  reactStrictMode: true,
 };
 
 export default nextConfig;

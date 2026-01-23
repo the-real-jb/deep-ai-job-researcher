@@ -1,8 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withClient } from '@/lib/hb';
-import { buildCandidateProfile } from '@/lib/candidate';
+import { buildCandidateProfile, type CandidateProfile } from '@/lib/candidate';
 import { crawlJobSources } from '@/lib/jobs';
 import { llmMatch } from '@/lib/match';
+
+function deriveJobKeywords(candidate: CandidateProfile): string[] {
+  const keywords: string[] = [];
+
+  // Prioritize explicit desired roles from preferences
+  if (candidate.preferences?.desiredRoles?.length) {
+    keywords.push(...candidate.preferences.desiredRoles);
+  }
+
+  // Use headline / title-like text from the resume
+  if (candidate.headline) {
+    keywords.push(candidate.headline);
+  }
+
+  // Add a few core skills to broaden the search surface
+  if (candidate.coreSkills?.length) {
+    keywords.push(...candidate.coreSkills.slice(0, 3));
+  }
+
+  // Normalize, dedupe, and keep the list concise
+  const normalized = keywords
+    .flatMap(k => k.split(/[,|/]/)) // split composite headlines like "SDET | QA Lead"
+    .map(k => k.trim())
+    .filter(Boolean);
+
+  const seen = new Set<string>();
+  const unique = normalized.filter(k => {
+    const key = k.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // Keep the top few to avoid over-broad searches
+  return unique.slice(0, 5);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,8 +108,14 @@ export async function POST(request: NextRequest) {
     // Build candidate profile from portfolio content
     const candidate = await buildCandidateProfile(portfolioText);
 
-    // Crawl job sources
-    const jobs = await crawlJobSources();
+    // Build dynamic job search keywords based on the candidate profile
+    const jobKeywords = deriveJobKeywords(candidate);
+
+    // Crawl job sources with dynamic keywords
+    const jobs = await crawlJobSources(
+      undefined,
+      jobKeywords.length ? { keywords: jobKeywords } : undefined
+    );
 
     if (jobs.length === 0) {
       return NextResponse.json(

@@ -52,14 +52,14 @@ describe('detectProvider', () => {
         delete process.env.OPENAI_API_KEY;
         process.env.ANTHROPIC_API_KEY = 'test-key';
         process.env.GOOGLE_AI_API_KEY = 'test-key';
-        expect(() => detectProvider(authContext)).toThrow('OpenAI API key is required for unauthenticated users');
+        expect(() => detectProvider(authContext)).toThrow('OpenAI API key is required');
       });
 
     it('should error if only GOOGLE_AI_API_KEY is set', () => {
         delete process.env.OPENAI_API_KEY;
         delete process.env.ANTHROPIC_API_KEY;
         process.env.GOOGLE_AI_API_KEY = 'test-key';
-        expect(() => detectProvider(authContext)).toThrow('OpenAI API key is required for unauthenticated users');
+        expect(() => detectProvider(authContext)).toThrow('OpenAI API key is required');
     });
 
     it('should error if no keys are set', () => {
@@ -67,7 +67,7 @@ describe('detectProvider', () => {
         delete process.env.ANTHROPIC_API_KEY;
         delete process.env.GOOGLE_AI_API_KEY;
         delete process.env.GEMINI_API_KEY;
-        expect(() => detectProvider(authContext)).toThrow('OpenAI API key is required for unauthenticated users');
+        expect(() => detectProvider(authContext)).toThrow('At least one AI provider API key is required');
     });
   });
 

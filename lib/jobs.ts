@@ -107,42 +107,86 @@ async function crawlSingleSource(
     onProgress?.(`[CRAWL] Starting ${source.name}... (${remaining} requests remaining)`);
 
     let jobs: JobListing[] = [];
+    let crawlSuccessful = false;
 
     if (source.type === 'api') {
       jobs = await fetchFromApi(source, options, onProgress);
+      crawlSuccessful = jobs.length > 0;
     } else {
-      jobs = await withClient(async (client) => {
-        // Build search URL with keywords based on source
-        let searchUrl = source.url;
-        const keywordString = options?.keywords?.slice(0, 3).join('%20') || 'software%20engineer';
+      try {
+        jobs = await withClient(async (client) => {
+          // Build search URL with keywords based on source
+          let searchUrl = source.url;
+          const keywordString = options?.keywords?.slice(0, 3).join('%20') || 'software%20engineer';
 
-        if (source.name === 'LinkedIn Jobs' && options?.keywords && options.keywords.length > 0) {
-          searchUrl = `https://www.linkedin.com/jobs/search/?keywords=${keywordString}&location=United%20States&f_TPR=r86400`;
-        } else if (source.name === 'Indeed' && options?.keywords && options.keywords.length > 0) {
-          const indeedKeywords = options.keywords.slice(0, 3).join('+');
-          searchUrl = `https://www.indeed.com/jobs?q=${indeedKeywords}&l=United+States&fromage=1`;
-        } else if (source.name === 'Google Jobs' && options?.keywords && options.keywords.length > 0) {
-          const googleKeywords = options.keywords.slice(0, 3).join('+');
-          searchUrl = `https://www.google.com/search?q=${googleKeywords}+jobs&ibp=htl;jobs`;
-        }
+          if (source.name === 'LinkedIn Jobs' && options?.keywords && options.keywords.length > 0) {
+            searchUrl = `https://www.linkedin.com/jobs/search/?keywords=${keywordString}&location=United%20States&f_TPR=r86400`;
+          } else if (source.name === 'Indeed' && options?.keywords && options.keywords.length > 0) {
+            const indeedKeywords = options.keywords.slice(0, 3).join('+');
+            searchUrl = `https://www.indeed.com/jobs?q=${indeedKeywords}&l=United+States&fromage=1`;
+          } else if (source.name === 'Google Jobs' && options?.keywords && options.keywords.length > 0) {
+            const googleKeywords = options.keywords.slice(0, 3).join('+');
+            searchUrl = `https://www.google.com/search?q=${googleKeywords}+jobs&ibp=htl;jobs`;
+          }
 
-        // Limit pages for rate-limited sources
-        const maxPages = ['LinkedIn Jobs', 'Indeed', 'Google Jobs'].includes(source.name) ? 3 : 10;
+          // Limit pages for rate-limited sources
+          const maxPages = ['LinkedIn Jobs', 'Indeed', 'Google Jobs'].includes(source.name) ? 3 : 10;
 
-        const result = await client.crawl.startAndWait({
-          url: searchUrl,
-          maxPages,
-          scrapeOptions: {
-            formats: ['markdown', 'html'],
-          },
+          try {
+            const result = await client.crawl.startAndWait({
+              url: searchUrl,
+              maxPages,
+              scrapeOptions: {
+                formats: ['markdown', 'html'],
+              },
+            });
+
+            onProgress?.(`[CRAWL] ${source.name} - ${result.status || 'completed'} - ${result.data?.length || 0} pages`);
+
+            // Check if crawl was successful
+            if (result.status === 'failed' || !result.data || result.data.length === 0) {
+              throw new Error(`Crawl failed with status: ${result.status || 'unknown'}`);
+            }
+
+            return parseJobsFromCrawlResult(result, source);
+          } catch (crawlError) {
+            // Try with simpler options if the first attempt fails
+            onProgress?.(`[RETRY] ${source.name} - attempting with simpler options...`);
+
+            try {
+              const retryResult = await client.crawl.startAndWait({
+                url: searchUrl,
+                maxPages: 1, // Reduce pages on retry
+                scrapeOptions: {
+                  formats: ['html'], // Try HTML only
+                },
+              });
+
+              onProgress?.(`[RETRY] ${source.name} - ${retryResult.status || 'completed'} - ${retryResult.data?.length || 0} pages`);
+
+              // Check if retry was successful
+              if (retryResult.status === 'failed' || !retryResult.data || retryResult.data.length === 0) {
+                throw new Error(`Retry crawl also failed: ${crawlError instanceof Error ? crawlError.message : 'Unknown error'}`);
+              }
+
+              return parseJobsFromCrawlResult(retryResult, source);
+            } catch (retryError) {
+              // Both attempts failed, return empty array
+              onProgress?.(`[WARN] ${source.name} - both initial and retry attempts failed`);
+              return [];
+            }
+          }
         });
+        crawlSuccessful = jobs.length > 0;
+      } catch (error) {
+        // Error already logged in inner catch, just mark as failed
+        crawlSuccessful = false;
+        jobs = [];
+      }
+    }
 
-        onProgress?.(`[CRAWL] ${source.name} - ${result.status || 'completed'} - ${result.data?.length || 0} pages`);
-
-        return parseJobsFromCrawlResult(result, source);
-      });
-
-      // Increment rate limit for scraped sources
+    // Only increment rate limit on successful crawls (to avoid wasting rate limit slots)
+    if (crawlSuccessful && jobs.length > 0) {
       incrementRateLimit(source.name);
     }
 
