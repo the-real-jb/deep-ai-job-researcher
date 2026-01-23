@@ -85,6 +85,7 @@ export default function ResumeUpload({ onFileUpload, isLoading }: ResumeUploadPr
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-lg mx-auto"
+      data-cy="resume-upload-container"
     >
       <div
         className={`relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-200 ${
@@ -106,6 +107,7 @@ export default function ResumeUpload({ onFileUpload, isLoading }: ResumeUploadPr
           className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer ${
             selectedFile ? 'pointer-events-none' : ''
           }`}
+          data-cy="resume-upload-input"
           disabled={isLoading}
         />
 
@@ -113,11 +115,14 @@ export default function ResumeUpload({ onFileUpload, isLoading }: ResumeUploadPr
           <div className="space-y-4">
             <div className="flex items-center justify-center space-x-2 text-accent">
               <FileText size={24} />
-              <span className="text-sm font-medium">{selectedFile.name}</span>
+              <span className="text-sm font-medium" data-cy="resume-upload-filename">
+                {selectedFile.name}
+              </span>
               <button
                 onClick={clearFile}
                 className="text-gray-500 hover:text-accent transition-colors"
                 disabled={isLoading}
+                data-cy="resume-upload-clear"
               >
                 <X size={16} />
               </button>
@@ -129,6 +134,7 @@ export default function ResumeUpload({ onFileUpload, isLoading }: ResumeUploadPr
               onClick={handleAnalyze}
               disabled={isLoading}
               className="btn-primary w-full"
+              data-cy="resume-upload-analyze"
             >
               {isLoading ? 'Analyzing...' : 'Analyze Resume'}
             </button>

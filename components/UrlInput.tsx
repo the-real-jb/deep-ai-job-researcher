@@ -52,6 +52,7 @@ export default function UrlInput({ onUrlSubmit, isLoading }: UrlInputProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-lg mx-auto"
+      data-cy="portfolio-input-container"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
@@ -65,6 +66,7 @@ export default function UrlInput({ onUrlSubmit, isLoading }: UrlInputProps) {
             placeholder="https://your-portfolio.com"
             className="w-full pl-10 pr-4 py-3 bg-console border border-border rounded-lg text-foreground placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200"
             disabled={isLoading}
+            data-cy="portfolio-url-input"
           />
         </div>
 
@@ -72,6 +74,7 @@ export default function UrlInput({ onUrlSubmit, isLoading }: UrlInputProps) {
           type="submit"
           disabled={isLoading || !url}
           className="btn-primary w-full flex items-center justify-center space-x-2"
+          data-cy="portfolio-analyze"
         >
           <span>{isLoading ? 'Analyzing Portfolio...' : 'Analyze Portfolio'}</span>
           {!isLoading && <ArrowRight size={16} />}
@@ -83,6 +86,7 @@ export default function UrlInput({ onUrlSubmit, isLoading }: UrlInputProps) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm"
+          data-cy="portfolio-url-error"
         >
           {error}
         </motion.div>

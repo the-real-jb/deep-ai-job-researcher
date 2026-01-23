@@ -1,0 +1,67 @@
+{
+  "success": true,
+  "jobsFound": 3,
+  "candidate": {
+    "name": "John Doe",
+    "headline": "Full Stack Developer",
+    "skills": [
+      "JavaScript",
+      "TypeScript",
+      "React",
+      "Node.js",
+      "Next.js",
+      "Python",
+      "PostgreSQL",
+      "AWS"
+    ],
+    "yearsExperience": 5,
+    "topProjects": [
+      "E-commerce platform with 100k+ users",
+      "Real-time chat application using WebSockets",
+      "AI-powered recommendation engine"
+    ],
+    "gaps": [
+      "Machine Learning frameworks (TensorFlow, PyTorch)",
+      "Kubernetes and container orchestration"
+    ],
+    "suggestions": [
+      "Consider learning ML frameworks for AI projects",
+      "Gain experience with DevOps tools"
+    ]
+  },
+  "matches": [
+    {
+      "title": "Senior Full Stack Engineer",
+      "company": "TechCorp",
+      "url": "https://example.com/jobs/1",
+      "score": 92,
+      "missingSkills": ["Kubernetes"],
+      "pitch": "Your 5 years of React and Node.js experience make you an excellent fit for this senior role.",
+      "location": "San Francisco, CA",
+      "remote": true,
+      "source": "Work at a Startup"
+    },
+    {
+      "title": "Frontend Developer",
+      "company": "StartupXYZ",
+      "url": "https://example.com/jobs/2",
+      "score": 85,
+      "missingSkills": [],
+      "pitch": "Your TypeScript and React expertise align perfectly with this frontend position.",
+      "location": "New York, NY",
+      "remote": false,
+      "source": "Work at a Startup"
+    },
+    {
+      "title": "Python Backend Engineer",
+      "company": "DataCo",
+      "url": "https://example.com/jobs/3",
+      "score": 78,
+      "missingSkills": ["Django", "Machine Learning"],
+      "pitch": "Your Python and PostgreSQL skills are a strong foundation for this backend role.",
+      "location": "Remote",
+      "remote": true,
+      "source": "Work at a Startup"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "candidate": {
+    "name": "Portfolio User",
+    "headline": "Creative Developer",
+    "skills": ["WebGL", "Three.js", "React"],
+    "yearsExperience": 3,
+    "topProjects": ["Interactive 3D Portfolio"],
+    "gaps": [],
+    "suggestions": []
+  },
+  "matches": [
+    {
+      "title": "Creative Technologist",
+      "company": "Agency XYZ",
+      "url": "https://example.com/job2",
+      "score": 88,
+      "pitch": "Perfect for your creative skills",
+      "missingSkills": [],
+      "location": "New York",
+      "remote": false,
+      "source": "Indeed"
+    },
+    {
+      "title": "Frontend Creative Engineer",
+      "company": "Studio ABC",
+      "url": "https://example.com/job3",
+      "score": 81,
+      "pitch": "Strong fit for 3D and React experience",
+      "missingSkills": ["GSAP"],
+      "location": "Remote",
+      "remote": true,
+      "source": "We Work Remotely"
+    }
+  ],
+  "jobsFound": 2,
+  "portfolioUrl": "https://example.com/portfolio"
+}

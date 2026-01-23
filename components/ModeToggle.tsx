@@ -27,6 +27,7 @@ export default function ModeToggle({ mode, onModeChange }: ModeToggleProps) {
             className={`px-6 py-2 text-sm font-medium transition-colors duration-200 relative z-10 rounded-md ${
               mode === 'resume' ? 'text-background' : 'text-foreground hover:text-accent'
             }`}
+            data-cy="mode-toggle-resume"
           >
             Resume
           </button>
@@ -35,6 +36,7 @@ export default function ModeToggle({ mode, onModeChange }: ModeToggleProps) {
             className={`px-6 py-2 text-sm font-medium transition-colors duration-200 relative z-10 rounded-md ${
               mode === 'portfolio' ? 'text-background' : 'text-foreground hover:text-accent'
             }`}
+            data-cy="mode-toggle-portfolio"
           >
             Portfolio
           </button>

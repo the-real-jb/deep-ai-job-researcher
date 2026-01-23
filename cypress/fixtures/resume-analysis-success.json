@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "jobsFound": 3,
+  "candidate": {
+    "name": "James B Tester",
+    "headline": "Senior QA Engineer",
+    "skills": [
+      "Cypress",
+      "JavaScript",
+      "Postman",
+      "Automation",
+      "Testing",
+      "CI/CD",
+      "API Testing"
+    ],
+    "coreSkills": [
+      "Cypress",
+      "JavaScript",
+      "Postman",
+      "Automation",
+      "Testing",
+      "CI/CD",
+      "API Testing"
+    ],
+    "yearsExperience": 10,
+    "experienceLevel": "senior",
+    "topProjects": ["Cypress E2E Testing Framework"],
+    "gaps": [],
+    "suggestions": [],
+    "location": "Remote"
+  },
+  "matches": [
+    {
+      "title": "Senior QA Engineer",
+      "company": "Awesome Inc",
+      "url": "https://example.com/jobs/senior-qa-engineer",
+      "score": 95,
+      "missingSkills": ["C++"],
+      "pitch": "Strong Cypress experience with JavaScript and Postman, but missing C++ experience.",
+      "source": "Work at a Startup (Mock)"
+    }
+  ]
+}

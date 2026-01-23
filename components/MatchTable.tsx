@@ -63,9 +63,10 @@ export default function MatchTable({ matches, candidate }: MatchTableProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-6xl mx-auto mt-8"
+      data-cy="job-match-table"
     >
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2" data-cy="job-match-table-title">
           Job Matches ({matches.length})
         </h2>
         <div className="text-foreground/60 text-sm">
@@ -81,11 +82,15 @@ export default function MatchTable({ matches, candidate }: MatchTableProps) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
             className="bg-console border border-border rounded-lg p-6 hover:border-accent/50 transition-colors"
+            data-cy={`job-match-${index}`}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-semibold text-foreground">
+                  <h3
+                    className="text-lg font-semibold text-foreground"
+                    data-cy="job-match-title"
+                  >
                     {match.title}
                   </h3>
                   <a
@@ -93,13 +98,16 @@ export default function MatchTable({ matches, candidate }: MatchTableProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-accent hover:text-accent-hover transition-colors"
+                    data-cy="job-match-link"
                   >
                     <ExternalLink size={16} />
                   </a>
                 </div>
                 
                 <div className="flex items-center space-x-4 text-sm text-foreground/80 mb-3">
-                  <span className="font-medium">{match.company}</span>
+                  <span className="font-medium" data-cy="job-match-company">
+                    {match.company}
+                  </span>
                   {match.location && (
                     <div className="flex items-center space-x-1">
                       <MapPin size={14} />
@@ -112,10 +120,15 @@ export default function MatchTable({ matches, candidate }: MatchTableProps) {
                       <span>Remote</span>
                     </div>
                   )}
-                  <span className="text-foreground/60">• {match.source}</span>
+                  <span className="text-foreground/60" data-cy="job-match-source">
+                    • {match.source}
+                  </span>
                 </div>
 
-                <p className="text-foreground/80 text-sm leading-relaxed mb-3">
+                <p
+                  className="text-foreground/80 text-sm leading-relaxed mb-3"
+                  data-cy="job-match-pitch"
+                >
                   {match.pitch}
                 </p>
 
@@ -140,7 +153,10 @@ export default function MatchTable({ matches, candidate }: MatchTableProps) {
 
               <div className="ml-6 text-right">
                 <div className="mb-2">
-                  <span className={`text-2xl font-bold ${getScoreColor(match.score)}`}>
+                  <span
+                    className={`text-2xl font-bold ${getScoreColor(match.score)}`}
+                    data-cy="job-match-score"
+                  >
                     {match.score}
                   </span>
                   <span className="text-foreground/60 text-sm ml-1">%</span>
