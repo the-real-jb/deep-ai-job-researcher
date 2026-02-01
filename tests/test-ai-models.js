@@ -76,7 +76,7 @@ async function testProvider(providerName) {
   
   try {
     // Dynamically import the module
-    const { createChatCompletion } = require('./lib/ai-provider.js');
+    const { createChatCompletion } = require('../lib/ai-provider.js');
     
     console.log(`1. Testing simple completion...`);
     const simpleResult = await createChatCompletion([

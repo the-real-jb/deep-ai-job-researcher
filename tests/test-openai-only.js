@@ -44,7 +44,7 @@ async function main() {
   console.log('\nTesting provider detection...\n');
 
   try {
-    const { detectProvider } = require('./lib/ai-provider.js');
+    const { detectProvider } = require('../lib/ai-provider.js');
     
     // Test 1: With OpenAI key (should work)
     console.log('Test 1: With OpenAI API key');
@@ -69,7 +69,7 @@ async function main() {
     
     // Test 3: Test actual OpenAI completion
     console.log('\nTest 3: Testing actual OpenAI completion');
-    const { createChatCompletion } = require('./lib/ai-provider.js');
+    const { createChatCompletion } = require('../lib/ai-provider.js');
     
     const result = await createChatCompletion([
       {

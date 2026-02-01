@@ -3,7 +3,7 @@ describe('Portfolio analysis flow', () => {
     const authPassword = Cypress.env('AUTH_PASSWORD');
     cy.authenticateWithSession(authPassword);
     cy.visit('/');
-    cy.get('[data-cy="mode-toggle-portfolio"]').click();
+    cy.get('[data-cy="mode-toggle-portfolio"]').should('be.visible').click();
   });
 
   it('shows validation error for invalid URL', () => {

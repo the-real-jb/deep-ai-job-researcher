@@ -18,9 +18,8 @@ import "./commands";
 import "cypress-xpath";
 
 beforeEach(() => {
-  // Clear local storage and cookies before each test
+  // Clear local storage before each test
   cy.clearLocalStorage();
-  cy.clearCookies();
 });
 
 

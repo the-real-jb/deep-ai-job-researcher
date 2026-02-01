@@ -5,13 +5,16 @@ describe('Resume upload flow', () => {
 
   beforeEach(() => {
     const authPassword = Cypress.env('AUTH_PASSWORD');
+
+    // establish a session with the authentication password
     cy.authenticateWithSession(authPassword);
     cy.visit('/');
   });
 
   it('shows a validation error for non-PDF files', () => {
-    cy.get('[data-cy="mode-toggle-resume"]').click();
+    cy.get('[data-cy="mode-toggle-resume"]').should('be.visible').click();
     cy.get('[data-cy="resume-upload-input"]').should('exist');
+    
     cy.get('[data-cy="resume-upload-input"]').selectFile(
       'cypress/fixtures/test-resume.txt',
       { force: true }
@@ -20,15 +23,16 @@ describe('Resume upload flow', () => {
     cy.contains('File must be a PDF').should('be.visible');
   });
 
-  describe('with a mocked resume upload', () => {
+  describe('uploading a PDF and triggering analysis with a mocked resume that returns 1 match', () => {
     beforeEach(() => {
       cy.get('@resumeAnalysisSuccess').then((response) => {
-        cy.intercept('POST', '/api/analyze/resume', {
-          statusCode: 200,
+      cy.intercept('POST', '/api/analyze/resume', {
+        statusCode: 200,
           body: response
-        }).as('analyzeResume');
+      }).as('analyzeResume');
       });
 
+      // click the mode toggle button
       cy.get('[data-cy="mode-toggle-resume"]').click();
       cy.get('[data-cy="resume-upload-input"]').should('exist');
       cy.get('[data-cy="resume-upload-input"]').selectFile(
@@ -38,10 +42,14 @@ describe('Resume upload flow', () => {
 
       cy.get('[data-cy="resume-upload-filename"]').should('have.text', 'test-resume.pdf');
       cy.get('[data-cy="resume-upload-analyze"]').click();
+      
+      // wait for the analyze resume mocked API call to complete
       cy.wait('@analyzeResume');
     });
 
-    it('uploads a PDF and triggers analysis', () => {
+    it('verifies the job match table is visible and contains the correct number of matches', () => {
+      
+      // pause the test if the DEMO_PAUSE environment variable is set
       if (Cypress.env('DEMO_PAUSE')) {
         cy.pause();
       }
@@ -52,10 +60,13 @@ describe('Resume upload flow', () => {
     });
 
     it('shows the mocked match elements', () => {
+      
+      // pause the test if the DEMO_PAUSE environment variable is set
       if (Cypress.env('DEMO_PAUSE')) {
         cy.pause();
       }
 
+      // verify the job match table is visible and check the elements within the job match 0
       cy.get('[data-cy="job-match-0"]').within(() => {
         cy.get('[data-cy="job-match-title"]').should('have.text', 'Senior QA Engineer');
         cy.get('[data-cy="job-match-company"]').should('have.text', 'Awesome Inc');
@@ -65,6 +76,8 @@ describe('Resume upload flow', () => {
           'have.text',
           'Strong Cypress experience with JavaScript and Postman, but missing C++ experience.'
         );
+
+        // validate the job match link
         cy.get('[data-cy="job-match-link"]').should(
           'have.attr',
           'href',

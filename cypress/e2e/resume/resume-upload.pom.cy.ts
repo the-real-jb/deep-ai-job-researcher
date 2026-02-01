@@ -1,15 +1,15 @@
 import { JobMatchTable, ResumePage } from '../../support/pom_pages';
 
 describe('Resume upload flow (POM)', () => {
+  const resumePage = new ResumePage();
+  const matchTable = new JobMatchTable();
+
   beforeEach(() => {
     const authPassword = Cypress.env('AUTH_PASSWORD');
     cy.authenticateWithSession(authPassword);
     resumePage.visit().selectResumeMode();
     cy.fixture('resume-analysis-success.json').as('resumeAnalysisSuccess');
   });
-
-  const resumePage = new ResumePage();
-  const matchTable = new JobMatchTable();
 
   it('uploads a resume via POM', () => {
     cy.get('@resumeAnalysisSuccess').then((response) => {
